@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "1945718a-8039-4cdc-83e3-e5f5fab888c6",
+  "name": "Tether Tests To Test Cases",
+  "friendlyName": "Tether Tests To Test Cases",
+  "description": "Automatically create test run with test results and tethered test cases",
+  "helpMarkDown": "",
+  "category": "Utility",
+  "author": "Anton Vaytsekhovskiy",
+  "version": {
+    "Major": 0,
+    "Minor": 1,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Echo $(samplestring)",
+  "inputs": [
+    {
+      "name": "trxPath",
+      "type": "string",
+      "label": "Set test results (trx) file location",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Set path to *.trx file"
+    }
+  ],
+  "execution": {
+    "Node10": {
+      "target": "index.js"
+    }
+  }
+}
