@@ -1,0 +1,45 @@
+{
+  "manifestVersion": 1,
+  "id": "Test-Case-Automation-Task",
+  "name": "Test Case Automation",
+  "version": "0.0.1",
+  "publisher": "true-vaytsekhovskiy",
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "description": "Automatically add test results to test cases",
+  "categories": [
+    "Azure Pipelines"
+  ],
+  "icons": {
+    "default": "images/extension-icon.png"
+  },
+  "files": [
+    {
+      "path": "node_modules",
+      "packagePath": "node_modules"
+    },
+    {
+      "path": "icon.png",
+      "packagePath": "icon.png"
+    },
+    {
+      "path": "task.json",
+      "packagePath": "task.json"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "test-case-automation-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "TestCaseAutomation"
+      }
+    }
+  ]
+}

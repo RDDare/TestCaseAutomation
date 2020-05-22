@@ -1,17 +1,19 @@
-import * as tl from 'azure-pipelines-task-lib/task';
-import * as request from 'request-promise-native';
+import tl = require('azure-pipelines-task-lib/task');
+import request from 'request-promise-native';
 
 const collectionUrl = process.env['SYSTEM_TEAMFOUNDATIONSERVERURI'];
 const teamProject = process.env['SYSTEM_TEAMPROJECT'];
 console.log(`Team foundation server uri: ${collectionUrl}`);
-console.log(`Working on ${teamProject} project`);
+console.log(process.env);
 const accessToken = tl.getEndpointAuthorization('SystemVssConnection', true)?.parameters.AccessToken;
 const apiVersion = '5.1';
+run();
 
 async function run() {
     try {
+        console.log('--Get process env info--');
         console.log(process.env);
-        await getWorkItemsFromRelease();
+        // await getWorkItemsFromRelease();
     } catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message);
     }
