@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "Test-Case-Automation-Task",
   "name": "Test Case Automation",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "true-vaytsekhovskiy",
   "targets": [
     {
@@ -14,25 +14,25 @@
     "Azure Pipelines"
   ],
   "icons": {
-    "default": "images/extension-icon.png"
+    "default": "images/test-tube.png"
   },
   "files": [
     {
-      "path": "node_modules",
-      "packagePath": "node_modules"
+      "path": "TestCaseAutomation/node_modules",
+      "packagePath": "TestCaseAutomation/node_modules"
     },
     {
-      "path": "icon.png",
-      "packagePath": "icon.png"
+      "path": "TestCaseAutomation/icon.png",
+      "packagePath": "TestCaseAutomation/icon.png"
     },
     {
-      "path": "task.json",
-      "packagePath": "task.json"
+      "path": "TestCaseAutomation/task.json",
+      "packagePath": "TestCaseAutomation/task.json"
     }
   ],
   "contributions": [
     {
-      "id": "test-case-automation-task",
+      "id": "test-case-automation",
       "type": "ms.vss-distributed-task.task",
       "targets": [
         "ms.vss-distributed-task.tasks"

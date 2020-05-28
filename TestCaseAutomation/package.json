@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build_package": "tfx extension create --ref-version",
+    "build": "cd .. && tfx extension create --manifest-globs ./vss-extension.json --ref-version",
     "start": "tsc && node index.js"
   },
   "keywords": [],
