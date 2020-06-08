@@ -2,14 +2,14 @@
   "manifestVersion": 1,
   "id": "Test-Case-Automation-Task",
   "name": "Test Case Automation",
-  "version": "0.0.2",
+  "version": "0.1.3",
   "publisher": "true-vaytsekhovskiy",
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "description": "Automatically add test results to test cases",
+  "description": "Automatically create test run with test cases based on test runs results",
   "categories": [
     "Azure Pipelines"
   ],
@@ -28,6 +28,14 @@
     {
       "path": "TestCaseAutomation/task.json",
       "packagePath": "TestCaseAutomation/task.json"
+    },
+    {
+      "path": "TestCaseAutomation/index.js",
+      "packagePath": "TestCaseAutomation/index.js"
+    },
+    {
+      "path": "TestCaseAutomation/helpers/tfs-api.helper.js",
+      "packagePath": "TestCaseAutomation/helpers/tfs-api.helper.js"
     }
   ],
   "contributions": [

@@ -253,3 +253,4 @@ paket-files/
 
 logs/
 .taskkey
+**/*.js

@@ -35,78 +35,200 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 var tl = require("azure-pipelines-task-lib/task");
-var request_promise_native_1 = __importDefault(require("request-promise-native"));
-var collectionUrl = process.env['SYSTEM_TEAMFOUNDATIONSERVERURI'];
-var teamProject = process.env['SYSTEM_TEAMPROJECT'];
-console.log("Team foundation server uri: " + collectionUrl);
-console.log(process.env);
-var accessToken = (_a = tl.getEndpointAuthorization('SystemVssConnection', true)) === null || _a === void 0 ? void 0 : _a.parameters.AccessToken;
-var apiVersion = '5.1';
+var tfs_api_helper_1 = require("./helpers/tfs-api.helper");
 run();
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            try {
-                console.log('--Get process env info--');
-                console.log(process.env);
-                // await getWorkItemsFromRelease();
+        var buildId, testRuns, _i, testRuns_1, testRun, testResultsWithTestCaseIdArray, testCases, testPointsFromResults, testPlans, _a, testPlans_1, testPlan, testSuites, testPoints, associatedTestRun, testResults, err_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 16, , 17]);
+                    return [4 /*yield*/, tl.getInput("buildId")];
+                case 1:
+                    buildId = _b.sent();
+                    if (!(buildId !== undefined)) return [3 /*break*/, 15];
+                    return [4 /*yield*/, tfs_api_helper_1.getTestRunsRequest(buildId)];
+                case 2:
+                    testRuns = _b.sent();
+                    if (!(testRuns !== undefined)) return [3 /*break*/, 15];
+                    _i = 0, testRuns_1 = testRuns;
+                    _b.label = 3;
+                case 3:
+                    if (!(_i < testRuns_1.length)) return [3 /*break*/, 15];
+                    testRun = testRuns_1[_i];
+                    return [4 /*yield*/, getTestResultsWithTestCaseIdCollection(testRun)];
+                case 4:
+                    testResultsWithTestCaseIdArray = _b.sent();
+                    testCases = testResultsWithTestCaseIdArray
+                        .filter(function (x) { return x.testCase !== undefined; })
+                        .map(function (x) { return x.testCase; });
+                    if (!(testCases != undefined && testCases.length > 0)) return [3 /*break*/, 14];
+                    return [4 /*yield*/, tfs_api_helper_1.getTestPointsByTestCasesRequest(testCases)];
+                case 5:
+                    testPointsFromResults = _b.sent();
+                    testPlans = testPointsFromResults
+                        .map(function (x) { return x.testPlan; })
+                        .filter(function (item, i, array) {
+                        return array.findIndex(function (x) { return x.id === item.id; }) === i;
+                    });
+                    if (!(testPlans !== undefined && testPlans.length > 0)) return [3 /*break*/, 14];
+                    _a = 0, testPlans_1 = testPlans;
+                    _b.label = 6;
+                case 6:
+                    if (!(_a < testPlans_1.length)) return [3 /*break*/, 14];
+                    testPlan = testPlans_1[_a];
+                    return [4 /*yield*/, tfs_api_helper_1.getTestSuitesForPlanRequest(testPlan)];
+                case 7:
+                    testSuites = _b.sent();
+                    return [4 /*yield*/, getTestPoints(testSuites)];
+                case 8:
+                    testPoints = _b.sent();
+                    return [4 /*yield*/, tfs_api_helper_1.createTestRunRequest(testRun, testPoints, testPlan)];
+                case 9:
+                    associatedTestRun = _b.sent();
+                    return [4 /*yield*/, tfs_api_helper_1.getTestResultsRequest(associatedTestRun)];
+                case 10:
+                    testResults = _b.sent();
+                    return [4 /*yield*/, updateTestResults(associatedTestRun, testResults, testResultsWithTestCaseIdArray)];
+                case 11:
+                    _b.sent();
+                    return [4 /*yield*/, updateTestRun(associatedTestRun, testRun)];
+                case 12:
+                    _b.sent();
+                    _b.label = 13;
+                case 13:
+                    _a++;
+                    return [3 /*break*/, 6];
+                case 14:
+                    _i++;
+                    return [3 /*break*/, 3];
+                case 15: return [3 /*break*/, 17];
+                case 16:
+                    err_1 = _b.sent();
+                    tl.setResult(tl.TaskResult.Failed, err_1.message);
+                    return [3 /*break*/, 17];
+                case 17: return [2 /*return*/];
             }
-            catch (err) {
-                tl.setResult(tl.TaskResult.Failed, err.message);
-            }
-            return [2 /*return*/];
         });
     });
 }
-function getWorkItemsFromRelease() {
+function getTestResultsWithTestCaseIdCollection(testRun) {
     return __awaiter(this, void 0, void 0, function () {
-        var releaseId, uri, options, result;
+        var testResultsWithTestCase, testResults, _i, testResults_1, testResult, testCaseId;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    releaseId = process.env['RELEASE_RELEASEID'];
-                    uri = collectionUrl + "/" + teamProject + "/_apis/release/releases/" + releaseId + "/workitems";
-                    console.log("Collection work items associated with release from " + uri);
-                    options = createGetRequestOptions(uri);
-                    return [4 /*yield*/, request_promise_native_1.default.get(options)];
+                    testResultsWithTestCase = new Array();
+                    return [4 /*yield*/, tfs_api_helper_1.getTestResultsRequest(testRun)];
                 case 1:
-                    result = _a.sent();
-                    console.log("Collected " + result.count + " work items for tagging from release");
-                    return [2 /*return*/, result.value];
+                    testResults = _a.sent();
+                    if (!(testResults !== undefined)) return [3 /*break*/, 5];
+                    _i = 0, testResults_1 = testResults;
+                    _a.label = 2;
+                case 2:
+                    if (!(_i < testResults_1.length)) return [3 /*break*/, 5];
+                    testResult = testResults_1[_i];
+                    return [4 /*yield*/, parseTestCaseId(testResult.testCaseTitle)];
+                case 3:
+                    testCaseId = _a.sent();
+                    if (testCaseId !== undefined) {
+                        testResult.testCase = {
+                            id: testCaseId,
+                            name: undefined
+                        };
+                        testResultsWithTestCase.push(testResult);
+                    }
+                    _a.label = 4;
+                case 4:
+                    _i++;
+                    return [3 /*break*/, 2];
+                case 5:
+                    console.log("Parsed test results: [" + testResultsWithTestCase.map(function (x) { var _a; return (_a = x.testCase) === null || _a === void 0 ? void 0 : _a.id; }).join(", ") + "]");
+                    return [2 /*return*/, testResultsWithTestCase];
             }
         });
     });
 }
-function createGetRequestOptions(uri) {
-    return {
-        uri: uri,
-        headers: {
-            authorization: "Bearer " + accessToken,
-            'content-type': 'application/json',
-        },
-        json: true,
-    };
+function updateTestResults(testRun, target, source) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _loop_1, _i, target_1, targetTestResult;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _loop_1 = function (targetTestResult) {
+                        var sourceTargetResult = source.find(function (x) { var _a, _b; return ((_a = x.testCase) === null || _a === void 0 ? void 0 : _a.id) === ((_b = targetTestResult.testCase) === null || _b === void 0 ? void 0 : _b.id); });
+                        if (sourceTargetResult !== undefined) {
+                            targetTestResult.startedDate = sourceTargetResult.startedDate;
+                            targetTestResult.completedDate = sourceTargetResult.completedDate;
+                            targetTestResult.durationInMs = sourceTargetResult.durationInMs;
+                            targetTestResult.outcome = sourceTargetResult.outcome;
+                            targetTestResult.state = sourceTargetResult.state;
+                            targetTestResult.failureType = sourceTargetResult.failureType;
+                            targetTestResult.comment = sourceTargetResult.testCaseTitle;
+                            targetTestResult.errorMessage = sourceTargetResult.errorMessage;
+                        }
+                    };
+                    for (_i = 0, target_1 = target; _i < target_1.length; _i++) {
+                        targetTestResult = target_1[_i];
+                        _loop_1(targetTestResult);
+                    }
+                    return [4 /*yield*/, tfs_api_helper_1.updateTestResultsRequest(testRun, target)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
 }
-function getPatchRequestOptions(uri, newTags) {
-    return {
-        uri: uri,
-        headers: {
-            authorization: "Bearer " + accessToken,
-            'content-type': 'application/json-patch+json',
-        },
-        body: [
-            {
-                op: 'add',
-                path: '/fields/System.Tags',
-                value: newTags,
-            },
-        ],
-        json: true,
-    };
+function updateTestRun(target, source) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    target.state = source.state;
+                    return [4 /*yield*/, tfs_api_helper_1.updateTestRunRequest(target)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function getTestPoints(testSuites) {
+    return __awaiter(this, void 0, void 0, function () {
+        var testPoints, _i, testSuites_1, testSuit, testPointsArrayResponse, _a, testPointsArrayResponse_1, testPoint;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    testPoints = new Array();
+                    _i = 0, testSuites_1 = testSuites;
+                    _b.label = 1;
+                case 1:
+                    if (!(_i < testSuites_1.length)) return [3 /*break*/, 4];
+                    testSuit = testSuites_1[_i];
+                    return [4 /*yield*/, tfs_api_helper_1.getTestPointsRequest(testSuit)];
+                case 2:
+                    testPointsArrayResponse = _b.sent();
+                    for (_a = 0, testPointsArrayResponse_1 = testPointsArrayResponse; _a < testPointsArrayResponse_1.length; _a++) {
+                        testPoint = testPointsArrayResponse_1[_a];
+                        testPoints.push(testPoint);
+                    }
+                    _b.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, testPoints];
+            }
+        });
+    });
+}
+function parseTestCaseId(testCaseTitle) {
+    var testCaseId = /\d{4,}/.exec(testCaseTitle);
+    if (testCaseId !== null) {
+        return testCaseId[0];
+    }
+    return undefined;
 }
