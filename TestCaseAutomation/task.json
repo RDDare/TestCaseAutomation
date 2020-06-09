@@ -21,6 +21,13 @@
       "defaultValue": "$(Build.BuildId)",
       "required": true,
       "helpMarkDown": "Specify build Id with test run"
+    },
+    {
+      "name": "testPlanId",
+      "type": "string",
+      "label": "Set test plan Id",
+      "required": false,
+      "helpMarkDown": "Specify test plan for test run"
     }
   ],
   "execution": {

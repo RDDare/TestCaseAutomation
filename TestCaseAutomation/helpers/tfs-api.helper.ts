@@ -35,14 +35,6 @@ export async function getTestPointsByTestCasesRequest(testCases: Array<IShallowR
     return response.points as Array<ITestPoint>;
 }
 
-export async function getTestSuitesRequest(testCasesId: string) {
-    console.log(`-- Get test suites by test cases --`);
-    const uri = `${collectionUrl}/_apis/testplan/suites?testCaseId=${testCasesId}`;
-    const response = await getRequest<ITfsDto<ITestSuit>>(uri);
-    console.log(`Test suites count: ${response.count}`);
-    return response.value;
-}
-
 export async function getTestSuitesForPlanRequest(testPlan: IShallowReference) {
     console.log(`-- Get test suites for test plan ${testPlan.id} --`);
     const uri = `${projectApi}/testplan/Plans/${testPlan.id}/suites`;
@@ -68,8 +60,8 @@ export async function updateTestRunRequest(testRun: ITestRun) {
 export async function createTestRunRequest(testRun: ITestRun, testPoints: Array<ITestPoint>, testPlan: IShallowReference) {
     console.log(`-- Create new test run --`);
     const uri = `${projectApi}/test/runs`;
-    const response =  await postRequest<ITestRun>(uri, {
-        name: testRun.name,
+    const response = await postRequest<ITestRun>(uri, {
+        name: `${testPlan.name}_${testRun.buildConfiguration.id}`,
         automated: true,
         build: {
             id: testRun.buildConfiguration.id
@@ -107,6 +99,14 @@ export async function getTestResultsRequest(testRun: ITestRun) {
     const response = await getRequest<ITfsDto<ITestResult>>(url);
     console.log(`The test run '${testRun.id} - ${testRun.name}' has ${response.count} tests`);
     return response.value;
+}
+
+export async function getTestPlanInfoRequest(testPlan: IShallowReference) {
+    console.log(`-- Get test plan '${testPlan.id}' info --`);
+    const url = `${projectApi}/testplan/plans/${testPlan.id}`;
+    const response = await getRequest<IShallowReference>(url);
+    console.log(`Received details for test plan '${response.id} - ${response.name}'`);
+    return response;
 }
 
 async function getRequest<T>(uri: string): Promise<T> {

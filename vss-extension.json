@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "Test-Case-Automation-Task",
   "name": "Test Case Automation",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "publisher": "true-vaytsekhovskiy",
   "targets": [
     {

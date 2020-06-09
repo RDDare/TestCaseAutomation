@@ -5,13 +5,12 @@ import {ITestSuit} from "./models/ITestSuit";
 import {ITestPoint} from "./models/ITestPoint";
 import {IShallowReference} from "./models/IShallowReference";
 import {
-    createTestRunRequest,
+    createTestRunRequest, getTestPlanInfoRequest,
     getTestPointsByTestCasesRequest,
     getTestPointsRequest,
     getTestResultsRequest,
     getTestRunsRequest,
     getTestSuitesForPlanRequest,
-    getTestSuitesRequest,
     updateTestResultsRequest,
     updateTestRunRequest
 } from "./helpers/tfs-api.helper";
@@ -20,37 +19,48 @@ run();
 
 async function run() {
     try {
-        const buildId = await tl.getInput("buildId");
+        const buildId = await tl.getInput("buildId") as string;
+        const testPlanId = await tl.getInput("testPlanId") as string;
 
         if (buildId !== undefined) {
             // Get testRuns for buildId
             const testRuns = await getTestRunsRequest(buildId);
-            if (testRuns !== undefined) {
-                for (const testRun of testRuns) {
-                    // Collection of associated testResults
-                    const testResultsWithTestCaseIdArray = await getTestResultsWithTestCaseIdCollection(testRun);
-                    const testCases = testResultsWithTestCaseIdArray
-                        .filter(x => x.testCase !== undefined)
-                        .map(x => x.testCase as IShallowReference);
+            if (testRuns === undefined) {
+                console.log(`Test runs for build ${buildId} not found`);
+                return;
+            }
 
-                    if (testCases != undefined && testCases.length > 0) {
-                        const testPointsFromResults = await getTestPointsByTestCasesRequest(testCases);
+            for (const testRun of testRuns) {
+                // Collection of associated testResults
+                const testResultsWithTestCaseIdArray = await getTestResultsWithTestCaseIdCollection(testRun);
+                const testCases = testResultsWithTestCaseIdArray
+                    .filter(x => x.testCase !== undefined)
+                    .map(x => x.testCase as IShallowReference);
 
-                        const testPlans = testPointsFromResults
-                            .map(x => x.testPlan)
-                            .filter((item, i, array) => {
-                                return array.findIndex(x => x.id === item.id) === i
-                            });
+                if (testCases === undefined || testCases.length === 0) {
+                    console.log(`No scoped test results in test run ${testRun.id}`);
+                    continue;
+                }
 
-                        if (testPlans !== undefined && testPlans.length > 0) {
-                            for (const testPlan of testPlans) {
-                                const testSuites = await getTestSuitesForPlanRequest(testPlan);
-                                const testPoints = await getTestPoints(testSuites);
-                                const associatedTestRun = await createTestRunRequest(testRun, testPoints, testPlan);
-                                const testResults = await getTestResultsRequest(associatedTestRun);
-                                await updateTestResults(associatedTestRun, testResults, testResultsWithTestCaseIdArray);
-                                await updateTestRun(associatedTestRun, testRun);
-                            }
+                if (testPlanId !== undefined && testPlanId.length > 0) {
+                    const testPlanReference = <IShallowReference>{
+                        id: testPlanId
+                    };
+
+                    await createTestRunWithTetheredResults(testPlanReference, testRun, testResultsWithTestCaseIdArray);
+                } else {
+                    const testPointsFromResults = await getTestPointsByTestCasesRequest(testCases);
+                    const testPlans = testPointsFromResults
+                        .map(x => x.testPlan)
+                        .filter((item, i, array) => {
+                            return array.findIndex(x => x.id === item.id) === i;
+                        });
+
+                    if (testPlans !== undefined && testPlans.length > 0) {
+                        for (const testPlan of testPlans) {
+                            await createTestRunWithTetheredResults(testPlan
+                                , testRun
+                                , testResultsWithTestCaseIdArray);
                         }
                     }
                 }
@@ -59,6 +69,18 @@ async function run() {
     } catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message);
     }
+}
+
+async function createTestRunWithTetheredResults(testPlan: IShallowReference
+    , testRun: ITestRun
+    , testResultsWithTestCase: Array<ITestResult>) {
+    const testPlanFull = await getTestPlanInfoRequest(testPlan);
+    const testSuites = await getTestSuitesForPlanRequest(testPlanFull);
+    const testPoints = await getTestPoints(testSuites);
+    const associatedTestRun = await createTestRunRequest(testRun, testPoints, testPlanFull);
+    const testResults = await getTestResultsRequest(associatedTestRun);
+    await updateTestResults(associatedTestRun, testResults, testResultsWithTestCase);
+    await updateTestRun(associatedTestRun, testRun);
 }
 
 async function getTestResultsWithTestCaseIdCollection(testRun: ITestRun): Promise<Array<ITestResult>> {
@@ -119,10 +141,10 @@ async function getTestPoints(testSuites: Array<ITestSuit>): Promise<Array<ITestP
 }
 
 function parseTestCaseId(testCaseTitle: string): string | undefined {
-    const testCaseId = /\d{4,}/.exec(testCaseTitle);
+    const testCaseId = /_\d{4,6}$/.exec(testCaseTitle);
 
     if (testCaseId !== null) {
-        return testCaseId[0];
+        return testCaseId[0].replace('_', '');
     }
 
     return undefined;

@@ -41,76 +41,109 @@ var tfs_api_helper_1 = require("./helpers/tfs-api.helper");
 run();
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var buildId, testRuns, _i, testRuns_1, testRun, testResultsWithTestCaseIdArray, testCases, testPointsFromResults, testPlans, _a, testPlans_1, testPlan, testSuites, testPoints, associatedTestRun, testResults, err_1;
+        var buildId, testPlanId, testRuns, _i, testRuns_1, testRun, testResultsWithTestCaseIdArray, testCases, testPlanReference, testPointsFromResults, testPlans, _a, testPlans_1, testPlan, err_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 16, , 17]);
+                    _b.trys.push([0, 14, , 15]);
                     return [4 /*yield*/, tl.getInput("buildId")];
                 case 1:
                     buildId = _b.sent();
-                    if (!(buildId !== undefined)) return [3 /*break*/, 15];
-                    return [4 /*yield*/, tfs_api_helper_1.getTestRunsRequest(buildId)];
+                    return [4 /*yield*/, tl.getInput("testPlanId")];
                 case 2:
-                    testRuns = _b.sent();
-                    if (!(testRuns !== undefined)) return [3 /*break*/, 15];
-                    _i = 0, testRuns_1 = testRuns;
-                    _b.label = 3;
+                    testPlanId = _b.sent();
+                    if (!(buildId !== undefined)) return [3 /*break*/, 13];
+                    return [4 /*yield*/, tfs_api_helper_1.getTestRunsRequest(buildId)];
                 case 3:
-                    if (!(_i < testRuns_1.length)) return [3 /*break*/, 15];
+                    testRuns = _b.sent();
+                    if (testRuns === undefined) {
+                        console.log("Test runs for build " + buildId + " not found");
+                        return [2 /*return*/];
+                    }
+                    _i = 0, testRuns_1 = testRuns;
+                    _b.label = 4;
+                case 4:
+                    if (!(_i < testRuns_1.length)) return [3 /*break*/, 13];
                     testRun = testRuns_1[_i];
                     return [4 /*yield*/, getTestResultsWithTestCaseIdCollection(testRun)];
-                case 4:
+                case 5:
                     testResultsWithTestCaseIdArray = _b.sent();
                     testCases = testResultsWithTestCaseIdArray
                         .filter(function (x) { return x.testCase !== undefined; })
                         .map(function (x) { return x.testCase; });
-                    if (!(testCases != undefined && testCases.length > 0)) return [3 /*break*/, 14];
-                    return [4 /*yield*/, tfs_api_helper_1.getTestPointsByTestCasesRequest(testCases)];
-                case 5:
+                    if (testCases === undefined || testCases.length === 0) {
+                        console.log("No scoped test results in test run " + testRun.id);
+                        return [3 /*break*/, 12];
+                    }
+                    if (!(testPlanId !== undefined && testPlanId.length > 0)) return [3 /*break*/, 7];
+                    testPlanReference = {
+                        id: testPlanId
+                    };
+                    return [4 /*yield*/, createTestRunWithTetheredResults(testPlanReference, testRun, testResultsWithTestCaseIdArray)];
+                case 6:
+                    _b.sent();
+                    return [3 /*break*/, 12];
+                case 7: return [4 /*yield*/, tfs_api_helper_1.getTestPointsByTestCasesRequest(testCases)];
+                case 8:
                     testPointsFromResults = _b.sent();
                     testPlans = testPointsFromResults
                         .map(function (x) { return x.testPlan; })
                         .filter(function (item, i, array) {
                         return array.findIndex(function (x) { return x.id === item.id; }) === i;
                     });
-                    if (!(testPlans !== undefined && testPlans.length > 0)) return [3 /*break*/, 14];
+                    if (!(testPlans !== undefined && testPlans.length > 0)) return [3 /*break*/, 12];
                     _a = 0, testPlans_1 = testPlans;
-                    _b.label = 6;
-                case 6:
-                    if (!(_a < testPlans_1.length)) return [3 /*break*/, 14];
-                    testPlan = testPlans_1[_a];
-                    return [4 /*yield*/, tfs_api_helper_1.getTestSuitesForPlanRequest(testPlan)];
-                case 7:
-                    testSuites = _b.sent();
-                    return [4 /*yield*/, getTestPoints(testSuites)];
-                case 8:
-                    testPoints = _b.sent();
-                    return [4 /*yield*/, tfs_api_helper_1.createTestRunRequest(testRun, testPoints, testPlan)];
+                    _b.label = 9;
                 case 9:
-                    associatedTestRun = _b.sent();
-                    return [4 /*yield*/, tfs_api_helper_1.getTestResultsRequest(associatedTestRun)];
+                    if (!(_a < testPlans_1.length)) return [3 /*break*/, 12];
+                    testPlan = testPlans_1[_a];
+                    return [4 /*yield*/, createTestRunWithTetheredResults(testPlan, testRun, testResultsWithTestCaseIdArray)];
                 case 10:
-                    testResults = _b.sent();
-                    return [4 /*yield*/, updateTestResults(associatedTestRun, testResults, testResultsWithTestCaseIdArray)];
+                    _b.sent();
+                    _b.label = 11;
                 case 11:
-                    _b.sent();
-                    return [4 /*yield*/, updateTestRun(associatedTestRun, testRun)];
-                case 12:
-                    _b.sent();
-                    _b.label = 13;
-                case 13:
                     _a++;
-                    return [3 /*break*/, 6];
-                case 14:
+                    return [3 /*break*/, 9];
+                case 12:
                     _i++;
-                    return [3 /*break*/, 3];
-                case 15: return [3 /*break*/, 17];
-                case 16:
+                    return [3 /*break*/, 4];
+                case 13: return [3 /*break*/, 15];
+                case 14:
                     err_1 = _b.sent();
                     tl.setResult(tl.TaskResult.Failed, err_1.message);
-                    return [3 /*break*/, 17];
-                case 17: return [2 /*return*/];
+                    return [3 /*break*/, 15];
+                case 15: return [2 /*return*/];
+            }
+        });
+    });
+}
+function createTestRunWithTetheredResults(testPlan, testRun, testResultsWithTestCase) {
+    return __awaiter(this, void 0, void 0, function () {
+        var testPlanFull, testSuites, testPoints, associatedTestRun, testResults;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, tfs_api_helper_1.getTestPlanInfoRequest(testPlan)];
+                case 1:
+                    testPlanFull = _a.sent();
+                    return [4 /*yield*/, tfs_api_helper_1.getTestSuitesForPlanRequest(testPlanFull)];
+                case 2:
+                    testSuites = _a.sent();
+                    return [4 /*yield*/, getTestPoints(testSuites)];
+                case 3:
+                    testPoints = _a.sent();
+                    return [4 /*yield*/, tfs_api_helper_1.createTestRunRequest(testRun, testPoints, testPlanFull)];
+                case 4:
+                    associatedTestRun = _a.sent();
+                    return [4 /*yield*/, tfs_api_helper_1.getTestResultsRequest(associatedTestRun)];
+                case 5:
+                    testResults = _a.sent();
+                    return [4 /*yield*/, updateTestResults(associatedTestRun, testResults, testResultsWithTestCase)];
+                case 6:
+                    _a.sent();
+                    return [4 /*yield*/, updateTestRun(associatedTestRun, testRun)];
+                case 7:
+                    _a.sent();
+                    return [2 /*return*/];
             }
         });
     });
@@ -226,9 +259,9 @@ function getTestPoints(testSuites) {
     });
 }
 function parseTestCaseId(testCaseTitle) {
-    var testCaseId = /\d{4,}/.exec(testCaseTitle);
+    var testCaseId = /_\d{4,6}$/.exec(testCaseTitle);
     if (testCaseId !== null) {
-        return testCaseId[0];
+        return testCaseId[0].replace('_', '');
     }
     return undefined;
 }
